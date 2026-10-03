@@ -8,18 +8,25 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import config
 
 model = None
-try:
-    model = SentenceTransformer(config.EMBEDDING_MODEL)
-except Exception as e:
-    print(f"Warning: Could not load model {config.EMBEDDING_MODEL}: {e}")
+
+def get_model():
+    global model
+    if model is None:
+        try:
+            model = SentenceTransformer(config.EMBEDDING_MODEL)
+        except Exception as e:
+            print(f"Warning: Could not load model {config.EMBEDDING_MODEL}: {e}")
+    return model
 
 def get_embedding(text: str):
-    if not model:
+    m = get_model()
+    if not m:
         return np.zeros((384,))
-    return model.encode(text)
+    return m.encode(text)
 
 def compute_similarity(job_desc: str, candidate_text: str) -> float:
-    if not model:
+    m = get_model()
+    if not m:
         return 0.0
     
     job_emb = get_embedding(job_desc)

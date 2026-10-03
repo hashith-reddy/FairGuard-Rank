@@ -72,10 +72,18 @@ with tab1:
     job_desc = st.text_area("Job Description", "Looking for a backend developer with Python, FastAPI, and SQL experience. Machine Learning is a plus.", height=150)
     st.session_state.job_desc = job_desc
     
+    req_skills_str = st.text_input("Required Skills (comma-separated)", "python, fastapi, sql, machine learning")
+    st.session_state.req_skills = [s.strip().lower() for s in req_skills_str.split(",") if s.strip()]
+    
     uploaded_files = st.file_uploader("Upload Resumes (TXT, PDF, DOCX)", type=["txt", "pdf", "docx"], accept_multiple_files=True)
     
     if uploaded_files:
         for uf in uploaded_files:
+            # Prevent duplicate uploads across Streamlit reruns
+            existing_names = [c["name"] for c in st.session_state.candidates]
+            if uf.name in existing_names:
+                continue
+                
             try:
                 text = uf.read().decode('utf-8', errors='ignore')
                 st.session_state.candidates.append({
@@ -95,7 +103,7 @@ with tab2:
     st.header("Security & Integrity Shield")
     st.write("Live security feed showing flagged prompt injections, keyword stuffing alerts, and sanitized text previews.")
     
-    for cand in st.session_state.candidates:
+    for idx, cand in enumerate(st.session_state.candidates):
         with st.expander(f"Security Scan: {cand['name']}"):
             report = sanitize_text(cand['text'])
             col1, col2 = st.columns([1, 2])
@@ -106,7 +114,7 @@ with tab2:
                     st.error("🚨 Threat Detected")
                 st.json(report['flags'])
             with col2:
-                st.text_area("Sanitized Text Preview", report['clean_text'], height=150, key=f"sanitized_{cand['id']}")
+                st.text_area("Sanitized Text Preview", report['clean_text'], height=150, key=f"sanitized_{idx}_{cand['id']}")
 
 with tab3:
     st.header("Rankings & Skill Gap")
@@ -131,14 +139,20 @@ with tab3:
     # Display rankings
     sorted_cands = sorted(st.session_state.candidates, key=lambda x: x['score'], reverse=True)
     
-    req_skills_str = st.text_input("Core Required Skills for Analysis (comma-separated)", "python, fastapi, sql, machine learning")
-    req_skills = [s.strip() for s in req_skills_str.split(",") if s.strip()]
+    req_skills = st.session_state.get('req_skills', ["python", "fastapi", "sql", "machine learning"])
+    st.write(f"**Analyzing against Required Skills:** {', '.join(req_skills) if req_skills else 'None'}")
     
     for i, c in enumerate(sorted_cands):
         st.markdown(f"### #{i+1} {c['name']} - Score: {c['score']:.1f}%")
         
-        cand_skills = c.get("entities", {}).get("skills", [])
-        gap_analysis = analyze_skill_gap(cand_skills, req_skills)
+        cand_skills = set(c.get("entities", {}).get("skills", []))
+        # Ensure we capture any required skill dynamically from raw text
+        cand_text_lower = c['text'].lower()
+        for rs in req_skills:
+            if rs in cand_text_lower:
+                cand_skills.add(rs)
+                
+        gap_analysis = analyze_skill_gap(list(cand_skills), req_skills)
         
         col1, col2 = st.columns([1, 2])
         with col1:
@@ -147,10 +161,13 @@ with tab3:
                 st.error(f"Missing: {', '.join(gap_analysis['missing_skills'])}")
             else:
                 st.success("All core skills matched!")
+            
+            if gap_analysis["extra_skills"]:
+                st.info(f"Additional Skills: {', '.join(gap_analysis['extra_skills'])}")
         
         with col2:
             with st.expander("View SHAP Feature Attribution"):
-                shap_res = generate_shap_explanation(cand_skills, req_skills)
+                shap_res = generate_shap_explanation(list(cand_skills), req_skills)
                 if shap_res:
                     st.image(shap_res["plot_bytes"], caption="SHAP Analysis: Skill Drivers vs Penalties")
                     st.write("**Top Positive Drivers:**", [f"{s}: +{v:.2f}" for s, v in shap_res['positive_drivers']])
@@ -210,14 +227,14 @@ with tab5:
     st.header("Decision Console")
     st.write("Recruiter actions logging all actions for human-in-the-loop compliance.")
     
-    for c in st.session_state.candidates:
+    for idx, c in enumerate(st.session_state.candidates):
         col1, col2, col3 = st.columns([2, 1, 1])
         with col1:
             st.write(f"**{c['name']}** - Score: {c['score']:.1f}%")
         with col2:
             st.write(f"Current Status: {c['status']}")
         with col3:
-            decision = st.selectbox("Action", ["Pending", "Approve", "Reject", "Flag for Interview"], key=f"dec_{c['id']}")
+            decision = st.selectbox("Action", ["Pending", "Approve", "Reject", "Flag for Interview"], key=f"dec_{idx}_{c['id']}")
             if decision != c['status']:
                 c['status'] = decision
                 st.toast(f"Logged decision for {c['name']}: {decision}")

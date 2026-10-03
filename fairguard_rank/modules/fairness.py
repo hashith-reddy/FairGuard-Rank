@@ -38,8 +38,9 @@ def assess_fairness(df: pd.DataFrame, protected_attribute: str, target_attribute
         privileged_groups = [{protected_attribute: 1}]
         unprivileged_groups = [{protected_attribute: 0}]
         
+        analysis_df = df[[protected_attribute, target_attribute]].copy()
         dataset = StandardDataset(
-            df,
+            analysis_df,
             label_name=target_attribute,
             favorable_classes=[1],
             protected_attribute_names=[protected_attribute],
@@ -77,8 +78,9 @@ def mitigate_bias_reweighing(df: pd.DataFrame, protected_attribute: str, target_
         privileged_groups = [{protected_attribute: 1}]
         unprivileged_groups = [{protected_attribute: 0}]
         
+        analysis_df = df[[protected_attribute, target_attribute]].copy()
         dataset = StandardDataset(
-            df,
+            analysis_df,
             label_name=target_attribute,
             favorable_classes=[1],
             protected_attribute_names=[protected_attribute],
