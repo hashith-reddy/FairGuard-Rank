@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+/* Global typography */
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* Main title styling */
+h1, h2, h3 {
+    font-weight: 600 !important;
+    letter-spacing: -0.5px;
+}
+
+/* Tabs styling enhancements */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+}
+.stTabs [data-baseweb="tab"] {
+    border-radius: 6px 6px 0 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: none;
+    transition: all 0.2s ease;
+    background-color: #1e293b;
+    color: #94a3b8;
+}
+.stTabs [aria-selected="true"] {
+    border-top: 3px solid #818cf8;
+    background-color: #0f172a;
+    color: #f1f5f9 !important;
+}
+
+/* Buttons structural enhancements */
+.stButton > button {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    background-color: #1e293b;
+    color: #f1f5f9;
+}
+.stButton > button:hover {
+    border-color: #818cf8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    background-color: rgba(129, 140, 248, 0.1);
+    color: #818cf8;
+}
+
+/* Dataframes / Tables */
+[data-testid="stDataFrame"] {
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* File Uploader */
+[data-testid="stFileUploader"] {
+    border-radius: 8px;
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    padding: 1rem;
+    transition: all 0.3s ease;
+    background-color: #1e293b;
+}
+[data-testid="stFileUploader"]:hover {
+    border-color: #818cf8;
+    background-color: rgba(129, 140, 248, 0.05);
+}
+
+/* Expanders */
+.streamlit-expanderHeader {
+    border-radius: 6px !important;
+    font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+}
+[data-testid="stExpander"] {
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: #1e293b;
+}
+
+/* Alerts */
+.stAlert {
+    border-radius: 8px;
+}

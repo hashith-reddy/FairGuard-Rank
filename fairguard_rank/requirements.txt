@@ -15,3 +15,5 @@ sqlalchemy
 matplotlib
 pydantic
 python-multipart
+torchvision
+torch

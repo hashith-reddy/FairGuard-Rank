@@ -22,12 +22,27 @@ def extract_entities(text: str) -> dict:
     skills = []
     education = []
     
-    # Custom simple lists for demo
-    tech_skills = ['python', 'java', 'c++', 'machine learning', 'ai', 'sql', 'fastapi', 'react', 'aws']
+    # Expanded tech skills dictionary for robust NER
+    tech_skills = [
+        # Languages
+        'python', 'java', 'c++', 'c#', 'c', 'javascript', 'typescript', 'go', 'golang', 'rust', 'ruby', 'php', 'swift', 'kotlin', 'r', 'matlab', 'scala', 'dart', 'html', 'css', 'bash', 'shell', 'perl',
+        # ML & AI
+        'machine learning', 'deep learning', 'ai', 'artificial intelligence', 'nlp', 'computer vision', 'tensorflow', 'pytorch', 'keras', 'scikit-learn', 'pandas', 'numpy', 'scipy', 'opencv', 'huggingface', 'llm', 'genai',
+        # Backend & Web
+        'sql', 'nosql', 'mysql', 'postgresql', 'mongodb', 'redis', 'cassandra', 'elasticsearch', 'fastapi', 'flask', 'django', 'spring boot', 'express', 'node.js', 'nodejs', 'graphql', 'rest api',
+        # Frontend
+        'react', 'angular', 'vue', 'vue.js', 'next.js', 'svelte', 'tailwind', 'bootstrap', 'jquery',
+        # DevOps & Cloud
+        'aws', 'azure', 'gcp', 'google cloud', 'docker', 'kubernetes', 'k8s', 'terraform', 'ansible', 'jenkins', 'github actions', 'ci/cd', 'linux', 'ubuntu', 'git', 'bitbucket',
+        # Big Data
+        'hadoop', 'spark', 'kafka', 'airflow', 'snowflake', 'databricks', 'tableau', 'power bi'
+    ]
     
-    for token in doc:
-        if token.text.lower() in tech_skills:
-            skills.append(token.text.lower())
+    # Check for skills using word boundaries to avoid partial matches
+    text_lower = text.lower()
+    for skill in tech_skills:
+        if re.search(r'\b' + re.escape(skill) + r'\b', text_lower):
+            skills.append(skill)
             
     for ent in doc.ents:
         if ent.label_ == "ORG" and any(word in ent.text.lower() for word in ["university", "college", "institute"]):

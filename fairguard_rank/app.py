@@ -10,8 +10,20 @@ from modules.extractor import extract_entities
 from modules.matcher import compute_similarity, rank_candidates
 from modules.xai_engine import analyze_skill_gap, generate_shap_explanation
 from modules.fairness import assess_fairness, mitigate_bias_reweighing, compute_ai_self_preference
+from modules.ingestion import parse_resume
 
 st.set_page_config(page_title="FairGuard-Rank", page_icon="🛡️", layout="wide")
+
+# Inject Premium Custom CSS
+def load_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+
+try:
+    css_path = os.path.join(os.path.dirname(__file__), 'style.css')
+    load_css(css_path)
+except Exception as e:
+    pass
 
 st.title("🛡️ FairGuard-Rank: Smart Recruitment AI Platform")
 st.markdown("---")
@@ -72,8 +84,18 @@ with tab1:
     job_desc = st.text_area("Job Description", "Looking for a backend developer with Python, FastAPI, and SQL experience. Machine Learning is a plus.", height=150)
     st.session_state.job_desc = job_desc
     
-    req_skills_str = st.text_input("Required Skills (comma-separated)", "python, fastapi, sql, machine learning")
-    st.session_state.req_skills = [s.strip().lower() for s in req_skills_str.split(",") if s.strip()]
+    req_skills_str = st.text_area("Required Skills (Paste anything: comma-separated, newlines, tabs)", "python, fastapi, sql, machine learning", height=100)
+    import re
+    # Split by comma, newline, or semicolon
+    st.session_state.req_skills = [s.strip().lower() for s in re.split(r'[,\n;]+', req_skills_str) if s.strip()]
+    
+    # Extra UI Feature: Dashboard Metrics
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total Candidates Ingested", len(st.session_state.candidates))
+    col2.metric("Required Skills Count", len(st.session_state.req_skills))
+    safe_cands = sum(1 for c in st.session_state.candidates if sanitize_text(c['text'])['is_safe'])
+    col3.metric("Security Cleared", safe_cands)
+    st.markdown("---")
     
     uploaded_files = st.file_uploader("Upload Resumes (TXT, PDF, DOCX)", type=["txt", "pdf", "docx"], accept_multiple_files=True)
     
@@ -85,7 +107,8 @@ with tab1:
                 continue
                 
             try:
-                text = uf.read().decode('utf-8', errors='ignore')
+                # Use ingestion module to properly extract text from pdf/docx/txt
+                text = parse_resume(uf.read(), uf.name)
                 st.session_state.candidates.append({
                     "id": len(st.session_state.candidates) + 1,
                     "name": uf.name,
